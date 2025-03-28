@@ -1,7 +1,18 @@
 (begin-tx)
+(define-namespace "DAO_NS" basic-guards.GUARD_SUCCESS basic-guards.GUARD_SUCCESS)
+(namespace "DAO_NS")
 
-(use basic-guards)
 
-(define-namespace "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070" GUARD_SUCCESS GUARD_SUCCESS)
-(print "Additional namespaces initialized")
+(env-data {'ks-gov:["gov"], 'ks-bot:["bot"], 'ks-ops:["sales"]})
+(define-keyset "DAO_NS.governance" (read-keyset 'ks-gov))
+(define-keyset "DAO_NS.bot" (read-keyset 'ks-bot))
+(define-keyset "DAO_NS.sales-operator" (read-keyset 'ks-ops))
+
+(env-keys ["gov"])
+
 (commit-tx)
+
+
+(env-data {})
+(env-keys [])
+(env-sigs [])

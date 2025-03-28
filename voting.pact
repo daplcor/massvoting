@@ -1,20 +1,15 @@
-;; (namespace "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070")
-
-;; (define-keyset "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.ku-admin" (read-keyset "ku-admin"))
-;; (define-keyset "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.ku-ops" (read-keyset "ku-ops"))
-;; (define-keyset "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.bot" (read-keyset "bot"))
 
 (module dao GOV
 
 ; Capabilities
   (defcap GOV ()
-  (enforce-guard (keyset-ref-guard "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.ku-admin" )))
+  (enforce-guard (keyset-ref-guard "DAO_NS.governance" )))
 
   (defcap OPS()
-  (enforce-guard (keyset-ref-guard "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.ku-ops")))
+  (enforce-guard (keyset-ref-guard "DAO_NS.ops")))
 
   (defcap BOT()
-  (enforce-guard (keyset-ref-guard "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.bot")))
+  (enforce-guard (keyset-ref-guard "DAO_NS.bot")))
 
 ; Event Trackers 
 
