@@ -1,0 +1,7 @@
+(begin-tx)
+
+(use basic-guards)
+
+(define-namespace "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070" GUARD_SUCCESS GUARD_SUCCESS)
+(print "Additional namespaces initialized")
+(commit-tx)

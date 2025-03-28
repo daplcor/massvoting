@@ -5,7 +5,7 @@
            "disable-test-accounts":false})
 
 (load "kda-env/init.repl")
-
+(load "helpers/init.repl")
 ; Load my module
 (begin-tx)
 (namespace 'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070)
