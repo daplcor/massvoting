@@ -26,7 +26,10 @@
 (env-keys ["gov"])    
 (expect-failure "Bot Keys not in scope"
     (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-(env-keys ["bot"])    
+
+(env-keys ["bot"])
+(expect-failure "Voter cannot be empty" "Voter cannot be empty"
+    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true ""))    
 (expect "Vote Success" "alice voted true on proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"
     (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
 (commit-tx)

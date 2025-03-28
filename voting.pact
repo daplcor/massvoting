@@ -111,7 +111,7 @@
   (with-read proposals proposalId {'channelName:= channelName, 'startTime:=startTime, 'endTime:=endTime, 'votesFor:=votesFor, 'votesAgainst:=votesAgainst}
     (enforce (> (curr-time) startTime) "Voting has not started yet")
     (enforce (< (curr-time) endTime) "Voting has ended")    
-    
+    (enforce (!= voter "") "Voter cannot be empty")
        (with-capability (BOT)
         ; Inserts individual vote stats, will fail if voter has already voted
         (insert-voter-info proposalId voter vote)
