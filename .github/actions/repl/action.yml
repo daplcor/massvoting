@@ -1,0 +1,24 @@
+name: REPL
+description: Run a REPL test
+
+inputs:
+  target:
+    description: "The target REPL file to run"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Pact REPL for ${{ inputs.target }}
+      shell: bash
+      run: |
+        bin/pact -t ${{ inputs.target }} > out.log 2>&1
+        cat out.log
+        if grep -q "Load successful" out.log; then
+          echo "REPL test passed ✅"
+          exit 0
+        else
+          echo "REPL test failed ❌"
+          cat out.log
+          exit 1
+        fi

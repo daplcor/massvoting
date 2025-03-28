@@ -1,0 +1,29 @@
+name: Test Voting REPL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-voting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Clone kda-env
+        run: |
+          git clone https://github.com/CryptoPascal31/kadena_repl_sandbox.git temp-env
+          mv temp-env/kda-env ./kda-env
+
+      - name: Setup Pact
+        uses: ./.github/actions/setup-pact
+        with:
+          version: "5.0"
+
+      - name: Run voting.repl
+        uses: ./.github/actions/repl
+        with:
+          target: voting.repl
