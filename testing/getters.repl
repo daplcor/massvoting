@@ -1,0 +1,7 @@
+(begin-tx)
+(namespace 'DAO_NS)
+(use dao)
+(env-data {'proposalId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
+(print (check-proposal-status (read-msg 'proposalId)))
+(print (get-channel-stats "chan1"))
+(commit-tx)

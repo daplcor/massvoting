@@ -3,7 +3,7 @@
 (namespace "DAO_NS")
 
 
-(env-data {'ks-gov:["gov"], 'ks-bot:["bot"], 'ks-ops:["sales"]})
+(env-data {'ks-gov:["gov"], 'ks-bot:["bot"], 'ks-ops:["ops"]})
 (define-keyset "DAO_NS.governance" (read-keyset 'ks-gov))
 (define-keyset "DAO_NS.bot" (read-keyset 'ks-bot))
 (define-keyset "DAO_NS.sales-operator" (read-keyset 'ks-ops))
