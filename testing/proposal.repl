@@ -1,0 +1,21 @@
+(begin-tx "Create Initial Proposal")
+(env-keys [""])
+(namespace "DAO_NS")
+(use dao)
+
+(env-chain-data {'block-time:(time "2025-03-30T00:00:00Z")})
+(env-data {'t: {"time": {}}})
+(expect-failure "Can't acquire bot key"  
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1))
+
+(env-keys ["bot"])
+
+(expect-failure "Quorum can't be negative"  
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" -1))
+
+(expect-failure "End time must be greater than start time"  
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-02-02T00:00:00Z") "bob" 1))
+
+(expect "Proposal Created" "Proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo created" 
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1))
+(commit-tx)

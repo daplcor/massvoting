@@ -1,0 +1,51 @@
+(begin-tx "Mass Voting")
+(namespace "DAO_NS")
+(env-data {'pId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
+(use dao)
+
+(env-keys ["bot"])
+
+(print "Pre Mass vote gas check")
+(print (env-gas))
+(let*
+    (
+    
+      (test-users [
+        "alice1" "bob1" "charlie" "david" "eva" 
+        "frank" "grace" "henry" "isabel" "jack"
+        "kate" "leo" "mia" "noah" "olivia"
+        "paul" "quinn" "ryan" "sophia" "tyler" 
+      ])
+      
+      ;; Create alternating true/false vote values
+      (vote-values (map 
+        (lambda (i) (= 0 (mod i 2))) 
+        (enumerate 0 (- (length test-users) 1))))
+        
+      (proposal-id (read-msg 'pId))
+      
+      ;; This just lets us run our test repeatedly
+      (run-vote-test (lambda (i)
+        (let
+          (
+            (user (at i test-users))
+            (vote-value (at i vote-values))
+            (expected-msg (format "{} voted {} on proposal {}" 
+                          [user (if vote-value "true" "false") proposal-id]))
+          )
+          ;; Run the actual test
+          (expect 
+            (format "Vote Success for {}" [user]) 
+            expected-msg
+            (place-vote proposal-id vote-value user)
+          )
+        )))
+    )
+    
+    ;; We finally get to run the tests
+    (map (lambda (i) (run-vote-test i)) (enumerate 0 (- (length test-users) 1)))
+  )
+
+(print "Post Mass vote gas check")
+(print (env-gas))
+(rollback-tx)

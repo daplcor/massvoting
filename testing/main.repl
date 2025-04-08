@@ -1,37 +1,11 @@
-(begin-tx "Create Initial Proposal")
-(env-keys ["bot"])
-(namespace "DAO_NS")
-(use dao)
+; Create the initial proposal and test edge cases
+(load "proposal.repl")
 
-(env-chain-data {'block-time:(time "2025-03-30T00:00:00Z")})
-(env-data {'t: {"time": {}}})
-(expect "Proposal Created" "Proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo created" 
-    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1))
-(commit-tx)
+; Test the voting process
+(load "vote.repl")
 
-(begin-tx "Vote")
-(env-keys [""])
-(namespace "DAO_NS")
-(use dao)
-(expect-failure "Voting has not started yet" "Voting has not started yet" 
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-
-(env-chain-data {'block-time:(time "2025-03-30T01:00:00Z")})
-
-(expect-failure "Bot Keys not in scope"
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-(env-keys ["ops"])    
-(expect-failure "Bot Keys not in scope"
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-(env-keys ["gov"])    
-(expect-failure "Bot Keys not in scope"
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-
-(env-keys ["bot"])
-(expect-failure "Voter cannot be empty" "Voter cannot be empty"
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true ""))    
-(expect "Vote Success" "alice voted true on proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"
-    (place-vote "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo" true "alice"))
-(commit-tx)
-
+; Test the getters are returning proper values
 (load "getters.repl")
+
+; Optional to test mass voting gas
+(load "massvote.repl")

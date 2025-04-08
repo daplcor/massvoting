@@ -5,9 +5,6 @@
   (defcap GOV ()
   (enforce-guard (keyset-ref-guard "DAO_NS.governance" )))
 
-  (defcap OPS()
-  (enforce-guard (keyset-ref-guard "DAO_NS.ops")))
-
   (defcap BOT()
   (enforce-guard (keyset-ref-guard "DAO_NS.bot")))
 
@@ -116,10 +113,10 @@
         ; Inserts individual vote stats, will fail if voter has already voted
         (insert-voter-info proposalId voter vote)
         
-        ; Updates proposal stats
+        ; Updates proposal stats, protected by BOT capability
         (update-proposal-info proposalId vote votesFor votesAgainst)
         
-        ; Updates channel stats
+        ; Updates channel stats if all checks pass
         (with-read channels (hash-channel channelName) {'totalVotes:=totalVotes}
           (update channels (hash-channel channelName) { "totalVotes": (+ totalVotes 1)})
         )

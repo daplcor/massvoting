@@ -1,0 +1,40 @@
+(begin-tx "Vote")
+(env-keys [""])
+(namespace "DAO_NS")
+(env-data {'pId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
+(use dao)
+
+(expect-failure "Voting has not started yet" "Voting has not started yet" 
+    (place-vote (read-msg 'pId) true "alice"))
+
+(env-chain-data {'block-time:(time "2025-03-30T01:00:00Z")})
+
+(expect-failure "Bot Keys not in scope"
+    (place-vote (read-msg 'pId) true "alice"))
+
+(env-keys ["ops"])    
+(expect-failure "Bot Keys not in scope"
+    (place-vote (read-msg 'pId) true "alice"))
+
+(env-keys ["gov"])    
+(expect-failure "Bot Keys not in scope"
+    (place-vote (read-msg 'pId) true "alice"))
+
+(env-keys ["bot"])
+(expect-failure "Voter cannot be empty" "Voter cannot be empty"
+    (place-vote (read-msg 'pId) true ""))   
+
+(expect "Vote Success" "alice voted true on proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"
+    (place-vote (read-msg 'pId) true "alice"))
+(commit-tx)
+
+(begin-tx "test vote helper functions")
+(env-keys [""])
+(namespace "DAO_NS")
+(use dao)
+(env-data {'proposalId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
+
+(expect-failure "Bot capability not in scope" (insert-voter-info (read-msg 'proposalId) "alice" true))
+(expect-failure "Bot capability not in scope" (update-proposal-info (read-msg 'proposalId) true 1 0))
+
+(commit-tx)
