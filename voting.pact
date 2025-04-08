@@ -1,60 +1,54 @@
-
 (module dao GOV
 
 ; Capabilities
-  (defcap GOV ()
+(defcap GOV ()
   (enforce-guard (keyset-ref-guard "DAO_NS.governance" )))
 
-  (defcap BOT()
+(defcap BOT()
   (enforce-guard (keyset-ref-guard "DAO_NS.bot")))
 
 ; Event Trackers 
 
-  (defcap VOTER (voter:string proposalId:string vote:bool)
-    @event true
-  )  
+(defcap VOTER (voter:string proposalId:string vote:bool)
+  @event true)  
 
-  (defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time votesFor:integer votesAgainst:integer quorum:integer)
-    @event true
-  )
+(defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time votesFor:integer votesAgainst:integer quorum:integer)
+  @event true)
 
 ; Schemas
 
-  (defschema vote-schema
-    @doc "Key valie is concat of proposalId and voter"
-      proposalId:string
-      voter:string
-      vote:bool
-      time:time
-  )
+(defschema vote-schema
+  @doc "Key valie is concat of proposalId and voter"
+    proposalId:string
+    voter:string
+    vote:bool
+    time:time)
 
-  (defschema proposal
-    @doc "Key is proposalId"
-      proposalId:string
-      question:string
-      channelName:string
-      channelNumber:integer
-      description:string
-      creator:string
-      startTime:time
-      endTime:time
-      votesFor:integer 
-      votesAgainst:integer
-      quorum:integer
-  )
+(defschema proposal
+  @doc "Key is proposalId"
+    proposalId:string
+    question:string
+    channelName:string
+    channelNumber:integer
+    description:string
+    creator:string
+    startTime:time
+    endTime:time
+    votesFor:integer 
+    votesAgainst:integer
+    quorum:integer)
 
-  (defschema channel-stats
-    @doc "Key is a hash of channelName"
-      channelName:string
-      totalProposals:integer
-      totalVotes:integer
-      activeProposals:integer
-      lastProposalTime:time
-  )
+(defschema channel-stats
+  @doc "Key is a hash of channelName"
+    channelName:string
+    totalProposals:integer
+    totalVotes:integer
+    activeProposals:integer
+    lastProposalTime:time)
 
-  (deftable votes:{vote-schema})
-  (deftable channels:{channel-stats})
-  (deftable proposals:{proposal})
+(deftable votes:{vote-schema})
+(deftable channels:{channel-stats})
+(deftable proposals:{proposal})
 
 ; Initiator Functions
 
@@ -205,7 +199,6 @@
 (defun curr-time:time ()
   @doc "Returns current chain's block-time"
   (at 'block-time (chain-data)))
-  
 )
 
 (create-table proposals)
