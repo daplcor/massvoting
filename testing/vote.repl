@@ -34,7 +34,7 @@
 (use dao)
 (env-data {'proposalId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
 
-(expect-failure "Bot capability not in scope" (insert-voter-info (read-msg 'proposalId) "alice" true))
-(expect-failure "Bot capability not in scope" (update-proposal-info (read-msg 'proposalId) true 1 0))
+(expect-failure "Bot capability not in scope" "require-capability: not granted: (DAO_NS.dao.BOT)" (insert-voter-info (read-msg 'proposalId) "alice" true))
+(expect-failure "Bot capability not in scope" "require-capability: not granted: (DAO_NS.dao.BOT)" (update-proposal-info (read-msg 'proposalId) true 1 0))
 
 (commit-tx)
