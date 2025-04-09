@@ -53,7 +53,6 @@
 ; Initiator Functions
 
 (defun create-proposal:string
-  @doc "Creates a proposal to vote on"
     (
         question:string 
         description:string
@@ -64,10 +63,17 @@
         creator:string
         quorum:integer
         )
-        
+   @doc "Creates a proposal to vote on"
+   
+    ; Enforces strings are not empty and meet minimum length
+    (validate-string question 4)
+    (validate-string description 4)
+    (validate-string channelName 4)
+    (validate-string creator 3)
+
     (enforce (>= quorum 0) "Quorum must be greater than 0")
     (enforce (> end start) "End time must be greater than start time")
-
+    
     (let ((id:string (hash-id question channelName (curr-time))))
     (with-capability (BOT)
       (insert proposals id 
@@ -180,6 +186,13 @@
 )
 
 ; Helper Functions
+
+(defun validate-string:bool (str:string min-length:integer)
+  @doc "Validates that a string is not empty and meets minimum length"
+  (enforce (!= str "") "String cannot be empty")
+  (enforce (>= (length str) min-length) 
+    (format "String must be at least {} characters" [min-length]))
+  true)
 
 (defun concat-votes:string (proposalId:string voter:string)
   (format "{}:{}" [proposalId, voter]))
