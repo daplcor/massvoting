@@ -53,6 +53,7 @@
 ; Initiator Functions
 
 (defun create-proposal:string
+  @doc "Creates a proposal to vote on"
     (
         question:string 
         description:string
