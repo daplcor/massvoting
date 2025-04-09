@@ -66,9 +66,9 @@
    @doc "Creates a proposal to vote on"
    
     ; Enforces strings are not empty and meet minimum length
-    (validate-string question 4)
-    (validate-string description 4)
-    (validate-string channelName 4)
+    (validate-string question STRLENGTH)
+    (validate-string description STRLENGTH)
+    (validate-string channelName STRLENGTH)
     (validate-string creator 3)
 
     (enforce (>= quorum 0) "Quorum must be greater than 0")
@@ -184,6 +184,10 @@
         )
     )
 )
+
+; Constants
+
+(defconst STRLENGTH:integer 4)
 
 ; Helper Functions
 
