@@ -2,10 +2,10 @@
 
 ; Capabilities
 (defcap GOV ()
-  (enforce-guard (keyset-ref-guard "DAO_NS.governance" )))
+  (enforce-keyset "DAO_NS.governance" ))
 
 (defcap BOT()
-  (enforce-guard (keyset-ref-guard "DAO_NS.bot")))
+  (enforce-keyset "DAO_NS.bot"))
 
 ; Event Trackers 
 
