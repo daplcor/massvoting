@@ -1,11 +1,15 @@
 ; Create the initial proposal and test edge cases
 (load "proposal.repl")
+(print "Finished loading Proposals")
 
 ; Test the voting process
 (load "vote.repl")
+(print "Finished loading Voting")
 
 ; Test the getters are returning proper values
 (load "getters.repl")
+(print "Finished loading Getters")
 
 ; Optional to test mass voting gas
 (load "massvote.repl")
+(print "Finished loading Mass Voting")

@@ -6,16 +6,16 @@
 (env-chain-data {'block-time:(time "2025-03-30T00:00:00Z")})
 (env-data {'t: {"time": {}}})
 (expect-failure "Can't acquire bot key" "Keyset failure" 
-    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1))
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1 3))
 
 (env-keys ["bot"])
 
 (expect-failure "Quorum can't be negative"  "Quorum must be greater than 0"
-    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" -1))
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" -1 3))
 
 (expect-failure "End time must be greater than start time"  "End time must be greater than start time"
-    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-02-02T00:00:00Z") "bob" 1))
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-02-02T00:00:00Z") "bob" 1 3))
 
 (expect "Proposal Created" "Proposal d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo created" 
-    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1))
+    (create-proposal "test" "test" "chan1" 1 (time "2025-03-30T00:00:00Z") (time "2025-04-02T00:00:00Z") "bob" 1 3))
 (commit-tx)

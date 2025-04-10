@@ -12,7 +12,7 @@
 (defcap VOTER (voter:string proposalId:string vote:bool)
   @event true)  
 
-(defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time votesFor:integer votesAgainst:integer quorum:integer)
+(defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time quorum:integer voters:integer)
   @event true)
 
 ; Schemas
@@ -36,7 +36,8 @@
     endTime:time
     votesFor:integer 
     votesAgainst:integer
-    quorum:integer)
+    quorum:integer
+    voters:integer)
 
 (defschema channel-stats
   @doc "Key is a hash of channelName"
@@ -62,6 +63,7 @@
         end:time 
         creator:string
         quorum:integer
+        voters:integer
         )
    @doc "Creates a proposal to vote on"
    
@@ -88,7 +90,8 @@
         "endTime": end,
         "votesFor": 0,
         "votesAgainst": 0,
-        "quorum": quorum
+        "quorum": quorum,
+        "voters": voters
         }
       )
     )
@@ -123,6 +126,7 @@
         )
        )
   )
+  (emit-event (VOTER voter proposalId vote))
   (format "{} voted {} on proposal {}" [voter, vote, proposalId])
 )
 
@@ -148,11 +152,12 @@
         { 'votesFor := votesFor
         , 'votesAgainst := votesAgainst
         , 'quorum := quorum
+        , 'voters := voters
         , 'endTime := endTime
         , 'startTime := startTime
         }
         
-        (let*
+        (let
             (
                 (total-votes (+ votesFor votesAgainst))
                 (current-time (curr-time))
