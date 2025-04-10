@@ -9,16 +9,13 @@
 
 ; Event Trackers 
 
-(defcap VOTER (voter:string proposalId:string vote:bool)
-  @event true)  
-
 (defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time quorum:integer voters:integer)
   @event true)
 
 ; Schemas
 
 (defschema vote-schema
-  @doc "Key valie is concat of proposalId and voter"
+  @doc "Key valie is combination of proposalId and voter"
     proposalId:string
     voter:string
     vote:bool
@@ -26,7 +23,6 @@
 
 (defschema proposal
   @doc "Key is proposalId"
-    proposalId:string
     question:string
     channelName:string
     channelNumber:integer
@@ -73,14 +69,15 @@
     (validate-string channelName STRLENGTH)
     (validate-string creator 3)
 
-    (enforce (>= quorum 0) "Quorum must be greater than 0")
+    (enforce (> quorum 0) "Quorum must be greater than 0")
     (enforce (> end start) "End time must be greater than start time")
+    (enforce (>= start (curr-time)) "Start time must be in the future")
+    (enforce (<= (diff-time end start) MAXVOTETIME) "Proposal exceeds max time limit of 30 days for voting")
     
     (let ((id:string (hash-id question channelName (curr-time))))
     (with-capability (BOT)
-      (insert proposals id 
+      (insert proposals (hash-id question channelName (curr-time))
         {
-        "proposalId": id,
         "question": question,
         "description": description,
         "channelName": channelName,
@@ -100,8 +97,12 @@
     (with-default-read channels hashed-name 
       {'totalProposals: 0, 'totalVotes: 0, 'activeProposals: 0, 'lastProposalTime: (curr-time)} 
       {'totalProposals:=totalProposals, 'totalVotes:=totalVotes, 'activeProposals:=activeProposals, 'lastProposalTime:=lastProposalTime}
-      (write channels hashed-name {"channelName": channelName, "totalProposals": (+ totalProposals 1), "totalVotes": totalVotes, "activeProposals": (+ activeProposals 1), "lastProposalTime": (curr-time) })
-    ))
+      
+      (write channels hashed-name {"channelName": channelName, "totalProposals": (+ totalProposals 1), "totalVotes": totalVotes, 
+              "activeProposals": (+ activeProposals 1), "lastProposalTime": (curr-time) })))
+
+      (emit-event (PROPOSAL id question description channelName channelNumber creator start end quorum voters))
+
       (format "Proposal {} created" [id])
   )
 )
@@ -109,7 +110,7 @@
 ; Interactive Functions
 
 (defun place-vote:string (proposalId:string vote:bool voter:string)
-  (with-read proposals proposalId {'channelName:= channelName, 'startTime:=startTime, 'endTime:=endTime, 'votesFor:=votesFor, 'votesAgainst:=votesAgainst}
+  (with-read proposals proposalId {'channelName:= channelName, 'startTime:=startTime, 'endTime:=endTime}
     (enforce (> (curr-time) startTime) "Voting has not started yet")
     (enforce (< (curr-time) endTime) "Voting has ended")    
     (enforce (!= voter "") "Voter cannot be empty")
@@ -118,7 +119,7 @@
         (insert-voter-info proposalId voter vote)
         
         ; Updates proposal stats, protected by BOT capability
-        (update-proposal-info proposalId vote votesFor votesAgainst)
+        (update-proposal-info proposalId vote)
         
         ; Updates channel stats if all checks pass
         (with-read channels (hash-channel channelName) {'totalVotes:=totalVotes}
@@ -126,7 +127,6 @@
         )
        )
   )
-  (emit-event (VOTER voter proposalId vote))
   (format "{} voted {} on proposal {}" [voter, vote, proposalId])
 )
 
@@ -135,14 +135,15 @@
 (defun insert-voter-info:string (proposalId:string voter:string vote:bool)
   @doc "Inserts voter info"
   (require-capability (BOT))
-    (insert votes (concat-votes proposalId voter) { "proposalId": proposalId, "voter": voter, 
+    (insert votes (voter-key proposalId voter) { "proposalId": proposalId, "voter": voter, 
             "vote": vote, "time": (curr-time) }))
 
-(defun update-proposal-info:string (proposalId:string vote:bool votesFor:integer votesAgainst:integer)
+(defun update-proposal-info:string (proposalId:string vote:bool)
   @doc "Updates proposal info"
   (require-capability (BOT))
-    (update proposals proposalId { "votesFor": (if (= vote true) (+ votesFor 1) votesFor), 
-            "votesAgainst": (if (= vote false) (+ votesAgainst 1) votesAgainst) }))
+  (with-read proposals proposalId {'votesFor:= votesFor, 'votesAgainst:= votesAgainst}
+    (update proposals proposalId { "votesFor": (if vote (+ votesFor 1) votesFor), 
+            "votesAgainst": (if (not vote) (+ votesAgainst 1) votesAgainst) })))
 
 ; Tally Functions
 
@@ -156,43 +157,28 @@
         , 'endTime := endTime
         , 'startTime := startTime
         }
-        
-        (let
-            (
-                (total-votes (+ votesFor votesAgainst))
-                (current-time (curr-time))
-                (voting-ended (> current-time endTime))
-                (voting-started (> current-time startTime))
-                (quorum-met (or (= quorum 0) (>= total-votes quorum)))
-                (more-votes-for (> votesFor votesAgainst))
-            )
-            
-            {
-                "proposalId": proposalId,
-                "status": (cond
-                  ((not voting-started) "NOT_STARTED")
-                  ((not voting-ended) "IN_PROGRESS")
-                  ((not quorum-met) "FAILED_QUORUM")
-                  (more-votes-for "PASSED")
-                  "FAILED"
-                ),
-                "votesFor": votesFor,
-                "votesAgainst": votesAgainst,
-                "totalVotes": total-votes,
-                "quorum": quorum,
-                "quorumMet": quorum-met,
-                "votingEnded": voting-ended,
-                "votingStarted": voting-started,
-                "endTime": endTime,
-                "currentTime": current-time
-            }
-        )
+          {
+              "status": (cond
+                ((not (> (curr-time) startTime)) "NOT_STARTED")
+                ((not (> (curr-time) endTime)) "IN_PROGRESS")
+                ((not (or (= quorum 0) (>= (+ votesFor votesAgainst) quorum))) "FAILED_QUORUM")
+                ((> votesFor votesAgainst) "PASSED")
+                "FAILED"
+              ),
+              "votesFor": votesFor,
+              "votesAgainst": votesAgainst,
+              "totalVotes": (+ votesFor votesAgainst),
+              "totalPossibleVoters": voters,
+              "quorum": quorum,
+              "quorumMet": (or (= quorum 0) (>= (+ votesFor votesAgainst) quorum))
+          }        
     )
 )
 
 ; Constants
 
 (defconst STRLENGTH:integer 4)
+(defconst MAXVOTETIME:decimal 2592000.0)
 
 ; Helper Functions
 
@@ -203,7 +189,11 @@
     (format "String must be at least {} characters" [min-length]))
   true)
 
-(defun concat-votes:string (proposalId:string voter:string)
+(defun get-proposal-info:object (proposalId:string)
+  @doc "Returns full proposal info"
+  (read proposals proposalId))
+
+(defun voter-key:string (proposalId:string voter:string)
   (format "{}:{}" [proposalId, voter]))
 
 (defun hash-id:string

@@ -2,7 +2,11 @@
 (namespace 'DAO_NS)
 (use dao)
 (env-data {'proposalId: "d:AUi0tlUr08yY0yr1NwqOE8ryUF0Sznp7bapfuYOd9Yo"})
-(print (check-proposal-status (read-msg 'proposalId)))
+
+;; Optional checks if you want to verify the full proposal output
+; (print (check-proposal-status (read-msg 'proposalId)))
+; print (get-proposal-info (read-msg 'proposalId)))
+
 (expect "Proposal Votes correct" 1 (at 'totalVotes (get-channel-stats "chan1")))
 (expect "Proposal Totals correct" 1 (at 'totalProposals (get-channel-stats "chan1")))
 
