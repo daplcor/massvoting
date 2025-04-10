@@ -10,6 +10,7 @@
 (begin-tx)
 (namespace 'DAO_NS)
 (load "voting.pact")
+;  (typecheck "DAO_NS.dao")
 (commit-tx)
 
 (env-gasmodel "table")(env-gaslimit 150000)

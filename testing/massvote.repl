@@ -4,7 +4,6 @@
 (use dao)
 
 (env-keys ["bot"])
-
 (print "Pre Mass vote gas check")
 (print (env-gas))
 (let*
@@ -45,6 +44,13 @@
     ;; We finally get to run the tests
     (map (lambda (i) (run-vote-test i)) (enumerate 0 (- (length test-users) 1)))
   )
+
+  
+(print (check-proposal-status (read-msg 'pId)))
+(env-chain-data {'block-time:(time "2025-05-30T00:00:01Z")})
+(print (check-proposal-status (read-msg 'pId)))
+(expect "Vote Passed" "PASSED" (at 'status (check-proposal-status (read-msg 'pId))))
+
 
 (print "Post Mass vote gas check")
 (print (env-gas))

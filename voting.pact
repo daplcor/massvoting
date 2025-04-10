@@ -9,7 +9,7 @@
 
 ; Event Trackers 
 
-(defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time quorum:integer voters:integer)
+(defcap PROPOSAL (proposalId:string question:string description:string channelName:string channelNumber:integer creator:string startTime:time endTime:time quorum:decimal voters:integer)
   @event true)
 
 ; Schemas
@@ -32,7 +32,7 @@
     endTime:time
     votesFor:integer 
     votesAgainst:integer
-    quorum:integer
+    quorum:decimal
     voters:integer)
 
 (defschema channel-stats
@@ -58,7 +58,7 @@
         start:time 
         end:time 
         creator:string
-        quorum:integer
+        quorum:decimal
         voters:integer
         )
    @doc "Creates a proposal to vote on"
@@ -69,11 +69,12 @@
     (validate-string channelName STRLENGTH)
     (validate-string creator 3)
 
-    (enforce (> quorum 0) "Quorum must be greater than 0")
+    (enforce (and (>= quorum 0.0) (<= quorum 100.0)) "Quorum must be between 0 and 100 percent")
     (enforce (> end start) "End time must be greater than start time")
     (enforce (>= start (curr-time)) "Start time must be in the future")
     (enforce (<= (diff-time end start) MAXVOTETIME) "Proposal exceeds max time limit of 30 days for voting")
-    
+    (enforce (> voters 0) "Voter count must be greater than 0")
+
     (let ((id:string (hash-id question channelName (curr-time))))
     (with-capability (BOT)
       (insert proposals (hash-id question channelName (curr-time))
@@ -147,7 +148,7 @@
 
 ; Tally Functions
 
-(defun check-proposal-status:object (proposalId:string)
+(defun check-proposal-status (proposalId:string)
     @doc "Returns the status of a proposal including if it passed/failed and voting stats"
     (with-read proposals proposalId
         { 'votesFor := votesFor
@@ -159,9 +160,9 @@
         }
           {
               "status": (cond
-                ((not (> (curr-time) startTime)) "NOT_STARTED")
-                ((not (> (curr-time) endTime)) "IN_PROGRESS")
-                ((not (or (= quorum 0) (>= (+ votesFor votesAgainst) quorum))) "FAILED_QUORUM")
+                ((not (>= (curr-time) startTime)) "NOT_STARTED")
+                ((not (>= (curr-time) endTime)) "IN_PROGRESS")
+                ((not (or (= quorum 0.0) (>= (dec (+ votesFor votesAgainst)) (ceiling (* (/ quorum 100.0) voters) 2)))) "FAILED_QUORUM")
                 ((> votesFor votesAgainst) "PASSED")
                 "FAILED"
               ),
@@ -170,7 +171,8 @@
               "totalVotes": (+ votesFor votesAgainst),
               "totalPossibleVoters": voters,
               "quorum": quorum,
-              "quorumMet": (or (= quorum 0) (>= (+ votesFor votesAgainst) quorum))
+              "quorumMet": (or (= quorum 0.0) (>= (dec (+ votesFor votesAgainst)) (ceiling (* (/ 10.0 100.0) 10.0) 2))),
+              "participationRate": (if (= voters 0.0) 0.0 (* 100.0 (/ (dec (+ votesFor votesAgainst)) (dec voters))))
           }        
     )
 )
@@ -189,7 +191,7 @@
     (format "String must be at least {} characters" [min-length]))
   true)
 
-(defun get-proposal-info:object (proposalId:string)
+(defun get-proposal-info:object{proposal} (proposalId:string)
   @doc "Returns full proposal info"
   (read proposals proposalId))
 
@@ -200,7 +202,7 @@
   (question:string channelName:string times:time)
   (format "d:{}" [(hash {'q:question, "cn":channelName, "time":times})]))
 
-(defun get-channel-stats:object (channelName:string)
+(defun get-channel-stats:object{channel-stats} (channelName:string)
   (read channels (hash-channel channelName)))
 
 (defun hash-channel:string (channelName:string)

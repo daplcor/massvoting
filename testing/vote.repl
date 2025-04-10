@@ -7,7 +7,7 @@
 (expect-failure "Voting has not started yet" "Voting has not started yet" 
     (place-vote (read-msg 'pId) true "alice"))
 
-(env-chain-data {'block-time:(time "2025-03-30T01:00:00Z")})
+(env-chain-data {'block-time:(time "2025-03-30T00:00:01Z")})
 
 (expect-failure "Bot Keys not in scope" "Keyset failure"
     (place-vote (read-msg 'pId) true "alice"))
